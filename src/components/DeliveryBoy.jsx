@@ -4,6 +4,7 @@ import { useSelector } from "react-redux";
 import axios from "axios";
 import { useState } from "react";
 import { useEffect } from "react";
+import { getCurrentOrders } from "../hooks/useGetCurrentOder";
 
 const DeliveryBoy = () => {
   const { userInfo } = useSelector((state) => state.user);
@@ -29,7 +30,8 @@ const DeliveryBoy = () => {
     getAssignments();
   }, [userInfo]);
 
-  console.log("assignments",assignments);
+  getCurrentOrders();
+
 
   const handleAcceptOrder = async (assignmentId) => {
     try {

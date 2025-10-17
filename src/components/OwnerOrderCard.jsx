@@ -9,7 +9,6 @@ import { useGetAvailableDeliveryBoys } from '../hooks/useGetAvailableDeliveryBoy
 const OwnerOrderCard = ({data}) => {
   const [status, setStatus] = useState(data?.shopOrder?.[0]?.status || 'pending');
   const {availableBoys} = useSelector((state) => state.user);
-  console.log("availableBoys",availableBoys)
   const updateStatus = useUpdateStatus();
 
   async function handleStatusChange(e) {
@@ -75,7 +74,7 @@ useGetAvailableDeliveryBoys();
       </div>
 
       {
-        data?.shopOrder?.[0].status === "out-for-delivery" && 
+        data?.shopOrder?.[0].status === "out-for-delivery" && data?.shopOrder?.[0]?.assignedDeliveryBoy===null ? (
         <div className='mt-3 p-3 border rounded-lg text-sm bg-orange-50'>
           <p>Available Delivery Boys: </p>
           {
@@ -88,7 +87,11 @@ useGetAvailableDeliveryBoys();
             )
           }
 
-        </div>
+        </div>):(
+          <div className='mt-3 p-3 border rounded-lg text-sm bg-orange-50'>
+            <p>{data?.shopOrder?.[0]?.assignedDeliveryBoy ? `Assigned to: ${data.shopOrder[0].assignedDeliveryBoy.fullName}` : "Not Assigned"}</p>
+          </div>
+        )
       }
       <div className='text-right font-bold text-gray-800 text-sm'>
         Total: ₹{data?.totalAmount}

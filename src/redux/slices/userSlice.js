@@ -1,5 +1,6 @@
 
 import { createSlice } from "@reduxjs/toolkit";
+import { set } from "mongoose";
 
 // Get user from localStorage if it exists
 const getUserFromStorage = () => {
@@ -23,6 +24,7 @@ const userSlice = createSlice({
         myOrders: [],
         ownerOrders: [],
         availableBoys: [],
+        currentOrders: [],
         totalAmount: 0,
         loading: false,
         error: null,
@@ -75,6 +77,9 @@ const userSlice = createSlice({
             state.cartItems = state.cartItems.filter(item => item.id !== id);
             state.totalAmount = state.cartItems.reduce((total, item) => total + item.price * item.quantity, 0);
         },
+        setCurrentOrders: (state, action) => {
+            state.currentOrders = action.payload;
+        },
         clearUserData: (state) => {
             state.userInfo = null;
             state.city = "";
@@ -103,5 +108,5 @@ const userSlice = createSlice({
     
 });
 
-export const { setUserData, setCity, setState, setCurrentAddress, setAvailableBoys, clearUserData, setLoading, setError, setItemsByCity, setCartItems, updateQuantity, removeFromCart, setMyOrders, setOwnerOrders } = userSlice.actions;
+export const { setUserData, setCity, setState, setCurrentAddress, setAvailableBoys, clearUserData, setLoading, setError, setItemsByCity, setCartItems, updateQuantity, removeFromCart, setMyOrders, setOwnerOrders, setCurrentOrders } = userSlice.actions;
 export default userSlice.reducer;
