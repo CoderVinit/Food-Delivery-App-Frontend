@@ -10,6 +10,7 @@ import { ClipLoader } from "react-spinners";
 import { useDispatch } from "react-redux";
 import { setUserData } from "../redux/slices/userSlice";
 import toast from "react-hot-toast";
+import { BASE_URL } from "../config/constant";
 
 const SignUp = () => {
   const [showPassword, setShowPassword] = useState(false);
@@ -39,7 +40,7 @@ const SignUp = () => {
         e.preventDefault();
         try {
           setLoading(true);
-            const {data} = await axios.post(`http://localhost:8080/api/auth/signup`, formData, {
+            const {data} = await axios.post(`${BASE_URL}/api/auth/signup`, formData, {
                 withCredentials: true // This allows cookies to be sent and received
             });
             if(data.success){
@@ -77,7 +78,7 @@ const SignUp = () => {
           const provider = new GoogleAuthProvider();
           const result = await signInWithPopup(auth, provider);
           const user = result.user;
-          const {data} = await axios.post(`http://localhost:8080/api/auth/google-auth`, {
+          const {data} = await axios.post(`${BASE_URL}/api/auth/google-auth`, {
             email: user.email, 
             fullName: user.displayName, 
             mobile: formData.mobile,

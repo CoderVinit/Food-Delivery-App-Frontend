@@ -5,6 +5,7 @@ import { MdDeleteOutline } from "react-icons/md";
 import { useDispatch } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
 import { setShopData } from '../redux/slices/shopSlice';
+import { BASE_URL } from '../config/constant';
 
 const OwnerItemCard = ({ item }) => {
 
@@ -19,7 +20,7 @@ const OwnerItemCard = ({ item }) => {
   const handleDelete = async () => {
     // Handle delete action
     try {
-      const {data} = await axios.delete(`http://localhost:8080/api/item/deleteItem/${item._id}`, {withCredentials: true});
+      const {data} = await axios.delete(`${BASE_URL}/api/item/deleteItem/${item._id}`, {withCredentials: true});
       if(data.success){
         alert("Item deleted successfully");
         dispatch(setShopData(data.data));

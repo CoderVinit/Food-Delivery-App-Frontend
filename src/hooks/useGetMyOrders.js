@@ -2,6 +2,7 @@ import axios from "axios";
 import { useDispatch } from "react-redux";
 import { useEffect, useCallback } from "react";
 import { setMyOrders, setOrdersLoading, setOrdersError } from "../redux/slices/userSlice";
+import { BASE_URL } from "../config/constant";
 
 export const useGetMyOrders = () => {
     const dispatch = useDispatch();
@@ -11,7 +12,7 @@ export const useGetMyOrders = () => {
             dispatch(setOrdersLoading(true));
             dispatch(setOrdersError(null));
             
-            const { data } = await axios.get(`http://localhost:8080/api/order/my-orders`, { withCredentials: true });
+            const { data } = await axios.get(`${BASE_URL}/api/order/my-orders`, { withCredentials: true });
             if (data.success) {
                 dispatch(setMyOrders(data.data || data.orders || []));
             } else {

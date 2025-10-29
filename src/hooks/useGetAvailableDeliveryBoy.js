@@ -2,6 +2,7 @@ import axios from "axios";
 import { useDispatch, useSelector } from "react-redux";
 import { useEffect, useCallback } from "react";
 import { setAvailableBoys, setAvailableBoysLoading, setAvailableBoysError } from "../redux/slices/userSlice";
+import { BASE_URL } from "../config/constant";
 
 // Use inside a component: useGetAvailableDeliveryBoys();
 // It will fetch once on mount and whenever location changes.
@@ -21,7 +22,7 @@ export const useGetAvailableDeliveryBoys = () => {
       dispatch(setAvailableBoysError(null));
       
       const { data } = await axios.get(
-        `http://localhost:8080/api/user/available-delivery-boys?latitude=${location.lat}&longitude=${location.lon}`,
+        `${BASE_URL}/api/user/available-delivery-boys?latitude=${location.lat}&longitude=${location.lon}`,
         {
           withCredentials: true,
         }

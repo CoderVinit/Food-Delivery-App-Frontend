@@ -2,13 +2,14 @@ import axios from "axios";
 import { useDispatch } from "react-redux";
 import { useEffect, useCallback } from "react";
 import { setUserData } from "../redux/slices/userSlice";
+import { BASE_URL } from "../config/constant";
 
 export const useGetCurrentUser = () => {
     const dispatch = useDispatch();
     
     const fetchCurrentUser = useCallback(async () => {
         try {
-            const { data } = await axios.get(`http://localhost:8080/api/user/current-user`, { withCredentials: true });
+            const { data } = await axios.get(`${BASE_URL}/api/user/current-user`, { withCredentials: true });
             if (data.success) {
                 dispatch(setUserData(data.user));
             } else {

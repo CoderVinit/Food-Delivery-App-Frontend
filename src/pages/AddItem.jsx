@@ -7,6 +7,7 @@ import axios from 'axios';
 import { setShopData } from '../redux/slices/shopSlice';
 import LoadingSpinner from '../components/LoadingSpinner';
 import ErrorMessage from '../components/ErrorMessage';
+import { BASE_URL } from '../config/constant';
 
 const AddItem = () => {
     const navigate = useNavigate();
@@ -80,7 +81,7 @@ const AddItem = () => {
                 try {
                     setItemLoading(true);
                     setItemError('');
-                    const { data } = await axios.get(`http://localhost:8080/api/item/getItem/${itemId}`, {
+                    const { data } = await axios.get(`${BASE_URL}/api/item/getItem/${itemId}`, {
                         withCredentials: true
                     });
                     
@@ -206,10 +207,10 @@ const AddItem = () => {
 
             // Determine URL and method based on mode
             if (isEditMode) {
-                url = `http://localhost:8080/api/item/editItem/${itemId}`;
+                url = `${BASE_URL}/api/item/editItem/${itemId}`;
                 method = 'put';
             } else {
-                url = 'http://localhost:8080/api/item/addItem';
+                url = `${BASE_URL}/api/item/addItem`;
                 method = 'post';
             }
 

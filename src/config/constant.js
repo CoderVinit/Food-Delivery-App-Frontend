@@ -1,0 +1,1 @@
+export const BASE_URL = "https://food-delivery-app-backend-1-rbt0.onrender.com"

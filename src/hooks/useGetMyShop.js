@@ -2,6 +2,7 @@ import axios from "axios";
 import { useDispatch } from "react-redux";
 import { setShopData, setShopLoading, setShopError } from "../redux/slices/shopSlice";
 import { useEffect, useCallback } from "react";
+import { BASE_URL } from "../config/constant";
 
 export const useGetShopByOwner = () => {
     const dispatch = useDispatch();
@@ -11,7 +12,7 @@ export const useGetShopByOwner = () => {
             dispatch(setShopLoading(true));
             dispatch(setShopError(null));
             
-            const { data } = await axios.get(`http://localhost:8080/api/shop/get-shop`, { withCredentials: true });
+            const { data } = await axios.get(`${BASE_URL}/api/shop/get-shop`, { withCredentials: true });
             if (data.success) {
                 console.log("Fetched shop data:", data.data);
                 toast.success(data?.message || "Shop data fetched successfully");

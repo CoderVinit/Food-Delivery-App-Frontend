@@ -7,6 +7,7 @@ import { useEffect } from "react";
 import { useGetCurrentOrders } from "../hooks/useGetCurrentOder";
 import DeliveryboyTracking from "./DeliveryboyTracking";
 import { toast } from "react-hot-toast";
+import { BASE_URL } from "../config/constant";
 
 const DeliveryBoy = () => {
   const { userInfo, currentOrders } = useSelector((state) => state.user);
@@ -25,7 +26,7 @@ const DeliveryBoy = () => {
   const getAssignments = async () => {
     try {
       const result = await axios.get(
-        "http://localhost:8080/api/order/get-assignment",
+        `${BASE_URL}/api/order/get-assignment`,
         { withCredentials: true }
       );
       if (result.data.success) {
@@ -47,7 +48,7 @@ const DeliveryBoy = () => {
     try {
       setAcceptingOrder(assignmentId);
       const { data } = await axios.post(
-        `http://localhost:8080/api/order/accept-order/${assignmentId}`,
+        `${BASE_URL}/api/order/accept-order/${assignmentId}`,
         {},
         { withCredentials: true }
       );
@@ -91,8 +92,8 @@ const DeliveryBoy = () => {
       setLoadingOtp(true);
       // Include order ID in the request if needed
       const requestData = currentOrders?.shopOrder?.id ? { orderId: currentOrders.shopOrder.id } : {};
-      
-      const {data} = await axios.post("http://localhost:8080/api/order/mark-order-as-delivered", requestData, { withCredentials: true });
+
+      const {data} = await axios.post(`${BASE_URL}/api/order/mark-order-as-delivered`, requestData, { withCredentials: true });
       if(data.success){
         toast.success(data?.message || "OTP sent to customer successfully", {
           icon: '📱',
@@ -159,7 +160,7 @@ const DeliveryBoy = () => {
       
       console.log("Current Orders:", currentOrders);
       console.log("Submitting OTP with data:", requestData);
-      const {data} = await axios.post("http://localhost:8080/api/order/send-delivery-otp", requestData, { withCredentials: true });
+      const {data} = await axios.post(`${BASE_URL}/api/order/send-delivery-otp`, requestData, { withCredentials: true });
       if(data.success){
         toast.success(data?.message || "Order delivered successfully!", {
           icon: '🎉',

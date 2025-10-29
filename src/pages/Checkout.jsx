@@ -12,6 +12,7 @@ import { MdDeliveryDining } from "react-icons/md";
 import { FaMobileScreenButton } from "react-icons/fa6";
 import { FaCreditCard } from "react-icons/fa";
 import { removeFromCart } from "../redux/slices/userSlice";
+import { BASE_URL } from "../config/constant";
 
 function RecenterMap({ lat, lon }) {
   const map = useMap();
@@ -92,7 +93,7 @@ const Checkout = () => {
 
   const handleCheckout = async() => {
     try {
-      const {data} = await axios.post(`http://localhost:8080/api/order/place-order`,{
+      const {data} = await axios.post(`${BASE_URL}/api/order/place-order`,{
         cartItems,
         paymentMethod,
         deliveryAddress: {text: address, latitude: location.lat, longitude: location.lon},

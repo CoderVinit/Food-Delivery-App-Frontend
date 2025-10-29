@@ -2,6 +2,7 @@ import axios from "axios";
 import { useDispatch } from "react-redux";
 import { useEffect, useCallback } from "react";
 import { setCurrentOrders, setCurrentOrdersLoading, setCurrentOrdersError } from "../redux/slices/userSlice";
+import { BASE_URL } from "../config/constant";
 
 // Proper hook for fetching current orders
 export const useGetCurrentOrders = () => {
@@ -12,7 +13,7 @@ export const useGetCurrentOrders = () => {
             dispatch(setCurrentOrdersLoading(true));
             dispatch(setCurrentOrdersError(null));
             
-            const { data } = await axios.get(`http://localhost:8080/api/order/current-order`, { withCredentials: true });
+            const { data } = await axios.get(`${BASE_URL}/api/order/current-order`, { withCredentials: true });
             if (data.success) {
                 console.log(data, "Current orders fetched successfully");
                 dispatch(setCurrentOrders(data.data));

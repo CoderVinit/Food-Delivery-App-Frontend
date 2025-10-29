@@ -4,6 +4,7 @@ import toast from "react-hot-toast";
 import { IoIosArrowRoundBack } from "react-icons/io";
 import { useNavigate } from "react-router-dom";
 import { ClipLoader } from "react-spinners";
+import { BASE_URL } from "../config/constant";
 
 const ForgotPassword = () => {
   const [step, setStep] = useState(1);
@@ -19,7 +20,7 @@ const ForgotPassword = () => {
     // Logic to send OTP to the provided email
     try {
       setLoading(true);
-      const {data} = await axios.post(`http://localhost:8080/api/auth/send-otp`, {email});
+      const {data} = await axios.post(`${BASE_URL}/api/auth/send-otp`, {email});
       if(data.success){
         toast.success("OTP sent to your email!");
         setLoading(false);
@@ -39,7 +40,7 @@ const ForgotPassword = () => {
     // Logic to verify the entered OTP
     try {
       setLoading(true);
-      const {data} = await axios.post(`http://localhost:8080/api/auth/verify-otp`, {email, otp});
+      const {data} = await axios.post(`${BASE_URL}/api/auth/verify-otp`, {email, otp});
       if(data.success){
         toast.success("OTP verified successfully!");
         setStep(3);
@@ -61,7 +62,7 @@ const ForgotPassword = () => {
     }
     try {
       setLoading(true);
-      const {data} = await axios.post(`http://localhost:8080/api/auth/reset-password`, {email, newPassword});
+      const {data} = await axios.post(`${BASE_URL}/api/auth/reset-password`, {email, newPassword});
       if(data.success){
         toast.success("Password reset successfully!");
         navigate("/signin");

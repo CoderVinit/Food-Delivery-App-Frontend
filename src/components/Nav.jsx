@@ -9,6 +9,7 @@ import axios from "axios";
 import { clearUserData } from "../redux/slices/userSlice";
 import { FaPlus } from "react-icons/fa6";
 import { TbReceipt2 } from "react-icons/tb";
+import { BASE_URL } from "../config/constant";
 
 const Nav = () => {
   const { userInfo, city, cartItems } = useSelector((state) => state.user);
@@ -22,7 +23,7 @@ const Nav = () => {
     try {
       // Use POST method to match backend route
       const res = await axios.post(
-        `http://localhost:8080/api/auth/signout`,
+        `${BASE_URL}/api/auth/signout`,
         {},
         { withCredentials: true }
       );

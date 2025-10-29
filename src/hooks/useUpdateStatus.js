@@ -1,6 +1,7 @@
 import axios from "axios";
 import { useCallback } from "react";
 import { useDispatch } from "react-redux";
+import { BASE_URL } from "../config/constant";
 
 // Hook contract:
 // - Call inside a component to get a function: updateStatus(orderId, shopOrderId, status)
@@ -11,7 +12,7 @@ export const useUpdateStatus = () => {
   const updateStatus = useCallback(async (orderId, shopOrderId, status) => {
     try {
       const { data: resp } = await axios.put(
-        `http://localhost:8080/api/order/update-order-status/${orderId}/${shopOrderId}`,
+        `${BASE_URL}/api/order/update-order-status/${orderId}/${shopOrderId}`,
         { status },
         { withCredentials: true }
       );

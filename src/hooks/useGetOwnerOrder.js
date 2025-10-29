@@ -2,6 +2,7 @@ import axios from "axios";
 import { useDispatch } from "react-redux";
 import { useEffect, useCallback } from "react";
 import { setOwnerOrders, setOwnerOrdersLoading, setOwnerOrdersError } from "../redux/slices/userSlice";
+import { BASE_URL } from "../config/constant";
 
 export const useGetOwnerOrders = () => {
     const dispatch = useDispatch();
@@ -11,7 +12,7 @@ export const useGetOwnerOrders = () => {
             dispatch(setOwnerOrdersLoading(true));
             dispatch(setOwnerOrdersError(null));
             
-            const { data } = await axios.get(`http://localhost:8080/api/order/owner-orders`, { withCredentials: true });
+            const { data } = await axios.get(`${BASE_URL}/api/order/owner-orders`, { withCredentials: true });
             if (data.success) {
                 console.log(data, "Owner orders fetched successfully");
                 dispatch(setOwnerOrders(data.orders || []));

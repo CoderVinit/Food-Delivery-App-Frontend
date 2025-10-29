@@ -8,6 +8,7 @@ import { setShopData } from '../redux/slices/shopSlice';
 import { useGetShopByOwner } from '../hooks/useGetMyShop';
 import LoadingSpinner from '../components/LoadingSpinner';
 import ErrorMessage from '../components/ErrorMessage';
+import { BASE_URL } from '../config/constant';
 
 const CreateEditShop = () => {
   // Fetch shop data for editing
@@ -191,7 +192,7 @@ const CreateEditShop = () => {
         headers['Content-Type'] = 'application/json';
       }
 
-      const {data} = await axios.post('http://localhost:8080/api/shop/create-edit', requestData, {
+      const {data} = await axios.post(`${BASE_URL}/api/shop/create-edit`, requestData, {
         withCredentials: true,
         headers
       });

@@ -2,6 +2,7 @@ import axios from "axios";
 import { useDispatch } from "react-redux";
 import { useEffect, useCallback } from "react";
 import { setItemsByCity, setItemsLoading, setItemsError } from "../redux/slices/userSlice";
+import { BASE_URL } from "../config/constant";
 
 export const useGetItemsByCity = (city) => {
     const dispatch = useDispatch();
@@ -17,7 +18,7 @@ export const useGetItemsByCity = (city) => {
             dispatch(setItemsLoading(true));
             dispatch(setItemsError(null));
             
-            const { data } = await axios.get(`http://localhost:8080/api/item/getItems/${encodeURIComponent(city)}`, { withCredentials: true });
+            const { data } = await axios.get(`${BASE_URL}/api/item/getItems/${encodeURIComponent(city)}`, { withCredentials: true });
             if (data.success) {
                 dispatch(setItemsByCity(data.data || []));
             } else {

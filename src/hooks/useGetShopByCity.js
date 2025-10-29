@@ -3,6 +3,7 @@ import { useDispatch } from "react-redux";
 import { setShopByCity, setShopByCityLoading, setShopByCityError } from "../redux/slices/shopSlice";
 import { useEffect, useCallback } from "react";
 import toast from "react-hot-toast";
+import { BASE_URL } from "../config/constant";
 
 export const useGetShopByCity = (city) => {
     const dispatch = useDispatch();
@@ -19,7 +20,7 @@ export const useGetShopByCity = (city) => {
             dispatch(setShopByCityError(null));
             
             console.log('Fetching shops for city:', city);
-            const { data } = await axios.get(`http://localhost:8080/api/shop/get-shop-by-city/${encodeURIComponent(city)}`, { 
+            const { data } = await axios.get(`${BASE_URL}/api/shop/get-shop-by-city/${encodeURIComponent(city)}`, { 
                 withCredentials: true 
             });
             

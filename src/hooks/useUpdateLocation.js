@@ -1,6 +1,7 @@
 import axios from "axios";
 import { useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
+import { BASE_URL } from "../config/constant";
 
 
 
@@ -11,7 +12,7 @@ export const useUpdateLocation = () => {
     useEffect(()=>{
         const updateLocation = async (lat,lon) => {
         try {
-            const {data} = await axios.post(`http://localhost:8080/api/user/update-location`, {lat, long: lon}, {withCredentials: true});
+            const {data} = await axios.post(`${BASE_URL}/api/user/update-location`, {lat, long: lon}, {withCredentials: true});
             if(data.success){
                 console.log("Location updated successfully");
             } else {
