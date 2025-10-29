@@ -4,10 +4,9 @@ import { useSelector } from 'react-redux'
 import { FaUtensils } from "react-icons/fa";
 import { useNavigate } from 'react-router-dom';
 import { MdEdit } from "react-icons/md";
-import OwnerItemCard from './ownerItemCard';
+import OwnerItemCard from './OwnerItemCard';
 import { useGetShopByOwner } from '../hooks/useGetMyShop';
 import { useGetOwnerOrders } from '../hooks/useGetOwnerOrder';
-import DataState from './DataState';
 import LoadingSpinner from './LoadingSpinner';
 import ErrorMessage from './ErrorMessage';
 

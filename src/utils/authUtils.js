@@ -1,11 +1,12 @@
 import axios from 'axios';
 import { clearUserData } from '../redux/slices/userSlice';
+import { BASE_URL } from '../config/constant';
 
 // Function to validate if the user is still authenticated
 export const validateAuth = async (dispatch) => {
     try {
         // Make a request to a protected route to check if token is valid
-        const response = await axios.get('http://localhost:8080/api/auth/validate-token', {
+        const response = await axios.get(`${BASE_URL}/api/auth/validate-token`, {
             withCredentials: true
         });
         
