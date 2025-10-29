@@ -10,12 +10,13 @@ export const useUpdateStatus = () => {
 
   const updateStatus = useCallback(async (orderId, shopOrderId, status) => {
     try {
-      const { data: resp } = await axios.post(
+      const { data: resp } = await axios.put(
         `http://localhost:8080/api/order/update-order-status/${orderId}/${shopOrderId}`,
         { status },
         { withCredentials: true }
       );
       if (resp?.success) {
+        console.log("Updated shop order:", resp.data);
         console.log("Order status updated successfully");
       }
       return resp;

@@ -1,39 +1,39 @@
 import axios from "axios";
 import { useDispatch } from "react-redux";
 import { useEffect, useCallback } from "react";
-import { setMyOrders, setOrdersLoading, setOrdersError } from "../redux/slices/userSlice";
+import { setOrdersLoading, setOrdersError, setOrderDetailsById, setOrderDetailsByIdError, setOrderDetailsByIdLoading } from "../redux/slices/userSlice";
 
-export const useGetUserOrders = () => {
+export const useGetOrderById = (orderId) => {
     const dispatch = useDispatch();
-    
-    const fetchUserOrders = useCallback(async () => {
+
+    const fetchOrderById = useCallback(async () => {
         try {
             dispatch(setOrdersLoading(true));
             dispatch(setOrdersError(null));
-            
-            const { data } = await axios.get(`http://localhost:8080/api/order/my-orders`, { withCredentials: true });
+
+            const { data } = await axios.get(`http://localhost:8080/api/order/get-order-by-id/${orderId}`, { withCredentials: true });
             if (data.success) {
                 console.log(data, "User orders fetched successfully");
-                dispatch(setMyOrders(data.data || []));
+                dispatch(setOrderDetailsById(data.data || {}));
             } else {
                 const errorMsg = data.message || "Failed to fetch user orders";
                 console.log("Failed to fetch user orders:", errorMsg);
-                dispatch(setOrdersError(errorMsg));
-                dispatch(setMyOrders([]));
+                dispatch(setOrderDetailsByIdError(errorMsg));
+                dispatch(setOrderDetailsById(null));
             }
         } catch (error) {
             console.error("Error fetching user orders:", error);
             const errorMsg = error.response?.data?.message || error.message || "Network error while fetching orders";
-            dispatch(setOrdersError(errorMsg));
-            dispatch(setMyOrders([]));
+            dispatch(setOrderDetailsByIdError(errorMsg));
+            dispatch(setOrderDetailsById(null));
         } finally {
-            dispatch(setOrdersLoading(false));
+            dispatch(setOrderDetailsByIdLoading(false));
         }
     }, [dispatch]);
 
     useEffect(() => {
-        fetchUserOrders();
-    }, [fetchUserOrders]);
+        fetchOrderById();
+    }, [fetchOrderById]);
 
-    return fetchUserOrders;
+    return fetchOrderById;
 }

@@ -1,6 +1,5 @@
 
 import { createSlice } from "@reduxjs/toolkit";
-import { set } from "mongoose";
 
 // Get user from localStorage if it exists
 const getUserFromStorage = () => {
@@ -25,9 +24,24 @@ const userSlice = createSlice({
         ownerOrders: [],
         availableBoys: [],
         currentOrders: [],
+        orderDetailsById:null,
         totalAmount: 0,
+        // Loading states
         loading: false,
+        itemsLoading: false,
+        ordersLoading: false,
+        ownerOrdersLoading: false,
+        currentOrdersLoading: false,
+        availableBoysLoading: false,
+        orderDetailsByIdLoading: false,
+        // Error states
         error: null,
+        itemsError: null,
+        ordersError: null,
+        ownerOrdersError: null,
+        currentOrdersError: null,
+        availableBoysError: null,
+        orderDetailsByIdError: null,
     },  
     reducers: {
         setUserData: (state, action) => {
@@ -71,6 +85,8 @@ const userSlice = createSlice({
         },
         setAvailableBoys: (state, action) => {
             state.availableBoys = action.payload;
+            state.availableBoysLoading = false;
+            state.availableBoysError = null;
         },
         removeFromCart: (state, action) => {
             const id = action.payload;
@@ -79,6 +95,13 @@ const userSlice = createSlice({
         },
         setCurrentOrders: (state, action) => {
             state.currentOrders = action.payload;
+            state.currentOrdersLoading = false;
+            state.currentOrdersError = null;
+        },
+        setOrderDetailsById: (state, action) => {
+            state.orderDetailsById = action.payload;
+            state.orderDetailsByIdLoading = false;
+            state.orderDetailsByIdError = null;
         },
         clearUserData: (state) => {
             state.userInfo = null;
@@ -86,9 +109,13 @@ const userSlice = createSlice({
             state.state = "";
             state.currentAddress = "";
             state.error = null;
+            state.itemsError = null;
+            state.ordersError = null;
+            state.ownerOrdersError = null;
+            state.currentOrdersError = null;
+            state.availableBoysError = null;
             localStorage.removeItem('userInfo');
             localStorage.removeItem('shopInfo');
-            // Also clear any other potential auth-related localStorage items
             localStorage.removeItem('token');
             localStorage.removeItem('authData');
         },
@@ -100,13 +127,70 @@ const userSlice = createSlice({
         },
         setMyOrders: (state, action) => {
             state.myOrders = action.payload;
+            state.ordersLoading = false;
+            state.ordersError = null;
         },
         setOwnerOrders: (state, action) => {
             state.ownerOrders = action.payload;
+            state.ownerOrdersLoading = false;
+            state.ownerOrdersError = null;
+        },
+        // Loading state setters
+        setItemsLoading: (state, action) => {
+            state.itemsLoading = action.payload;
+        },
+        setOrdersLoading: (state, action) => {
+            state.ordersLoading = action.payload;
+        },
+        setOwnerOrdersLoading: (state, action) => {
+            state.ownerOrdersLoading = action.payload;
+        },
+        setCurrentOrdersLoading: (state, action) => {
+            state.currentOrdersLoading = action.payload;
+        },
+        setAvailableBoysLoading: (state, action) => {
+            state.availableBoysLoading = action.payload;
+        },
+        setOrderDetailsByIdLoading: (state, action) => {
+            state.orderDetailsByIdLoading = action.payload;
+        },
+        // Error state setters
+        setItemsError: (state, action) => {
+            state.itemsError = action.payload;
+            state.itemsLoading = false;
+        },
+        setOrdersError: (state, action) => {
+            state.ordersError = action.payload;
+            state.ordersLoading = false;
+        },
+        setOwnerOrdersError: (state, action) => {
+            state.ownerOrdersError = action.payload;
+            state.ownerOrdersLoading = false;
+        },
+        setCurrentOrdersError: (state, action) => {
+            state.currentOrdersError = action.payload;
+            state.currentOrdersLoading = false;
+        },
+        setAvailableBoysError: (state, action) => {
+            state.availableBoysError = action.payload;
+            state.availableBoysLoading = false;
+        },
+        setOrderDetailsByIdError: (state, action) => {
+            state.orderDetailsByIdError = action.payload;
+            state.orderDetailsByIdLoading = false;
         }
+
     },
     
 });
 
-export const { setUserData, setCity, setState, setCurrentAddress, setAvailableBoys, clearUserData, setLoading, setError, setItemsByCity, setCartItems, updateQuantity, removeFromCart, setMyOrders, setOwnerOrders, setCurrentOrders } = userSlice.actions;
+export const { 
+    setUserData, setCity, setState, setCurrentAddress, setAvailableBoys, clearUserData, 
+    setLoading, setError, setItemsByCity, setCartItems, updateQuantity, removeFromCart, 
+    setMyOrders, setOwnerOrders, setCurrentOrders, setOrderDetailsById,
+    // Loading states
+    setItemsLoading, setOrdersLoading, setOwnerOrdersLoading, setCurrentOrdersLoading, setAvailableBoysLoading, setOrderDetailsByIdLoading,
+    // Error states  
+    setItemsError, setOrdersError, setOwnerOrdersError, setCurrentOrdersError, setAvailableBoysError, setOrderDetailsByIdError
+} = userSlice.actions;
 export default userSlice.reducer;

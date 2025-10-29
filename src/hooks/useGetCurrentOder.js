@@ -1,27 +1,41 @@
 import axios from "axios";
 import { useDispatch } from "react-redux";
-import { useEffect } from "react";
-import { setCurrentOrders, setMyOrders } from "../redux/slices/userSlice";
+import { useEffect, useCallback } from "react";
+import { setCurrentOrders, setCurrentOrdersLoading, setCurrentOrdersError } from "../redux/slices/userSlice";
 
-
-
-export const getCurrentOrders = () => {
+// Proper hook for fetching current orders
+export const useGetCurrentOrders = () => {
     const dispatch = useDispatch();
-    useEffect(() => {
-        const fetchCurrentOrders = async () => {
-            try {
-                const { data } = await axios.get(`http://localhost:8080/api/order/current-order`, { withCredentials: true });
-                if (data.success) {
-                    console.log(data," User orders fetched successfully");
-                    dispatch(setCurrentOrders(data.data));
-                }
-                else {
-                    console.log("Failed to fetch user data:", data.message);
-                }
-            } catch (error) {
-                console.error("Error fetching user orders:", error);
+    
+    const fetchCurrentOrders = useCallback(async () => {
+        try {
+            dispatch(setCurrentOrdersLoading(true));
+            dispatch(setCurrentOrdersError(null));
+            
+            const { data } = await axios.get(`http://localhost:8080/api/order/current-order`, { withCredentials: true });
+            if (data.success) {
+                console.log(data, "Current orders fetched successfully");
+                dispatch(setCurrentOrders(data.data));
+            } else {
+                const errorMsg = data.message || "No current orders found";
+                console.log("Failed to fetch current orders:", errorMsg);
+                dispatch(setCurrentOrdersError(errorMsg));
+                dispatch(setCurrentOrders(null));
             }
+        } catch (error) {
+            console.error("Error fetching current orders:", error);
+            const errorMsg = error.response?.data?.message || error.message || "Network error while fetching current orders";
+            dispatch(setCurrentOrdersError(errorMsg));
+            dispatch(setCurrentOrders(null));
+        } finally {
+            dispatch(setCurrentOrdersLoading(false));
         }
-        fetchCurrentOrders();
     }, [dispatch]);
+
+    useEffect(() => {
+        fetchCurrentOrders();
+    }, [fetchCurrentOrders]);
+
+    // Return the fetch function so it can be called manually when needed
+    return fetchCurrentOrders;
 }

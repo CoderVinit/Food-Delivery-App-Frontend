@@ -6,6 +6,7 @@ import { FaCircleChevronLeft } from "react-icons/fa6";
 import { FaCircleChevronRight } from "react-icons/fa6";
 import { useDispatch, useSelector } from "react-redux";
 import { useGetShopByCity } from "../hooks/useGetShopByCity";
+import { useGetItemsByCity } from "../hooks/useGetItemsByCity";
 import FoodCard from "./FoodCard";
 
 const UserDashboard = () => {
@@ -16,7 +17,7 @@ const UserDashboard = () => {
 
   const [showLeftShopButton, setShowLeftShopButton] = useState(false);
   const [showRightShopButton, setShowRightShopButton] = useState(true);
-  const { city,error,itemsByCity } = useSelector((state) => state.user);
+  const { city, error, itemsByCity } = useSelector((state) => state.user);
   console.log('Current city:', city);
   console.log('Items by city:', itemsByCity);
   const { shopByCity } = useSelector((state) => state.shop);
@@ -27,8 +28,11 @@ const UserDashboard = () => {
   const safeShopByCity = Array.isArray(shopByCity) ? shopByCity : [];
   const safeItemsByCity = Array.isArray(itemsByCity) ? itemsByCity : [];
 
-  // Use the custom hook to fetch shops by city (with fallback)
+  // Use the custom hooks to fetch shops and items by city (with fallback)
   const currentCity = city || "Saidulajab Extension";
+  
+  // Fetch data specific to user dashboard
+  useGetItemsByCity(currentCity);
   useGetShopByCity(currentCity);
 
   const handleScroll = (ref, setShowLeft, setShowRight) => {

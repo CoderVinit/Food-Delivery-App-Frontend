@@ -1,5 +1,6 @@
 import axios from "axios";
 import React, { useState } from "react";
+import toast from "react-hot-toast";
 import { IoIosArrowRoundBack } from "react-icons/io";
 import { useNavigate } from "react-router-dom";
 import { ClipLoader } from "react-spinners";
@@ -20,16 +21,16 @@ const ForgotPassword = () => {
       setLoading(true);
       const {data} = await axios.post(`http://localhost:8080/api/auth/send-otp`, {email});
       if(data.success){
-        alert("OTP sent to your email!");
+        toast.success("OTP sent to your email!");
         setLoading(false);
         setStep(2);
       } else {
-        alert("Failed to send OTP. Please try again.");
+        toast.error("Failed to send OTP. Please try again.");
         setLoading(false);
       }
     } catch (error) {
       console.error(error);
-      alert("An error occurred. Please try again.");
+      toast.error("An error occurred. Please try again.");
       setLoading(false);
     }
   }
@@ -40,38 +41,38 @@ const ForgotPassword = () => {
       setLoading(true);
       const {data} = await axios.post(`http://localhost:8080/api/auth/verify-otp`, {email, otp});
       if(data.success){
-        alert("OTP verified successfully!");
+        toast.success("OTP verified successfully!");
         setStep(3);
         setLoading(false);
       } else {
-        alert("Failed to verify OTP. Please try again.");
+        toast.error("Failed to verify OTP. Please try again.");
         setLoading(false);
       }
     } catch (error) {
       console.error(error);
-      alert("An error occurred. Please try again.");
+      toast.error("An error occurred. Please try again.");
       setLoading(false);
     }
   }
   const handleResetPassword = async () => {
     if(newPassword !== confirmNewPassword) {
-      alert("Passwords do not match!");
+      toast.error("Passwords do not match!");
       return;
     }
     try {
       setLoading(true);
       const {data} = await axios.post(`http://localhost:8080/api/auth/reset-password`, {email, newPassword});
       if(data.success){
-        alert("Password reset successfully!");
+        toast.success("Password reset successfully!");
         navigate("/signin");
         setLoading(false);
       } else {
-        alert("Failed to reset password. Please try again.");
+        toast.error("Failed to reset password. Please try again.");
         setLoading(false);
       }
     } catch (error) {
       console.error(error);
-      alert("An error occurred. Please try again.");
+      toast.error("An error occurred. Please try again.");
       setLoading(false);
     }
   }

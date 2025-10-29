@@ -5,14 +5,22 @@ import { useNavigate } from 'react-router-dom';
 import { FaUtensils } from "react-icons/fa";
 import axios from 'axios';
 import { setShopData } from '../redux/slices/shopSlice';
+import { useGetShopByOwner } from '../hooks/useGetMyShop';
+import LoadingSpinner from '../components/LoadingSpinner';
+import ErrorMessage from '../components/ErrorMessage';
 
 const CreateEditShop = () => {
+  // Fetch shop data for editing
+  const fetchShop = useGetShopByOwner();
+  
   const navigate = useNavigate();
-  const {shopInfo} = useSelector((state)=>state.shop);
-  const {city,state,currentAddress} = useSelector((state)=>state.user);
+  const { shopInfo, loading: shopLoading, error: shopError } = useSelector((state) => state.shop);
+  const { city, state, currentAddress } = useSelector((state) => state.user);
   const dispatch = useDispatch();
   
   const [loading, setLoading] = useState(false);
+  const [errors, setErrors] = useState({});
+  const [submitError, setSubmitError] = useState('');
   const [formData, setFormData] = useState({
     name: "",
     image: null,
@@ -22,6 +30,45 @@ const CreateEditShop = () => {
   });
   
   const [imagePreview, setImagePreview] = useState(null);
+
+  // Form validation rules
+  const validateForm = () => {
+    const newErrors = {};
+    
+    if (!formData.name.trim()) {
+      newErrors.name = 'Shop name is required';
+    } else if (formData.name.trim().length < 2) {
+      newErrors.name = 'Shop name must be at least 2 characters';
+    }
+    
+    if (!formData.city.trim()) {
+      newErrors.city = 'City is required';
+    }
+    
+    if (!formData.state.trim()) {
+      newErrors.state = 'State is required';
+    }
+    
+    if (!formData.address.trim()) {
+      newErrors.address = 'Address is required';
+    } else if (formData.address.trim().length < 10) {
+      newErrors.address = 'Address must be at least 10 characters';
+    }
+    
+    if (formData.image && typeof formData.image === 'object') {
+      const validTypes = ['image/jpeg', 'image/png', 'image/webp', 'image/jpg'];
+      if (!validTypes.includes(formData.image.type)) {
+        newErrors.image = 'Please upload a valid image file (JPEG, PNG, WebP)';
+      }
+      
+      if (formData.image.size > 5 * 1024 * 1024) { // 5MB limit
+        newErrors.image = 'Image size must be less than 5MB';
+      }
+    }
+    
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
 
 
   // Update form data when shopInfo changes
@@ -54,11 +101,43 @@ const CreateEditShop = () => {
   const handleChange = (e) => {
     const { id, value, files } = e.target;
     
+    // Clear existing errors for this field
+    if (errors[id]) {
+      setErrors(prev => ({
+        ...prev,
+        [id]: ''
+      }));
+    }
+    
+    if (submitError) {
+      setSubmitError('');
+    }
+    
     if (files && files[0]) {
       // Handle file input
+      const file = files[0];
+      
+      // Validate file immediately
+      const validTypes = ['image/jpeg', 'image/png', 'image/webp', 'image/jpg'];
+      if (!validTypes.includes(file.type)) {
+        setErrors(prev => ({
+          ...prev,
+          [id]: 'Please upload a valid image file (JPEG, PNG, WebP)'
+        }));
+        return;
+      }
+      
+      if (file.size > 5 * 1024 * 1024) { // 5MB limit
+        setErrors(prev => ({
+          ...prev,
+          [id]: 'Image size must be less than 5MB'
+        }));
+        return;
+      }
+      
       setFormData((prevState) => ({
         ...prevState,
-        [id]: files[0],
+        [id]: file,
       }));
       
       // Set image preview
@@ -66,7 +145,7 @@ const CreateEditShop = () => {
       reader.onload = (e) => {
         setImagePreview(e.target.result);
       };
-      reader.readAsDataURL(files[0]);
+      reader.readAsDataURL(file);
     } else {
       // Handle text inputs
       setFormData((prevState) => ({
@@ -78,13 +157,14 @@ const CreateEditShop = () => {
 
   const handleSubmit = async(e)=>{
     e.preventDefault();
+    setSubmitError('');
     
-    // Basic validation
-    if (!formData.name || !formData.city || !formData.state || !formData.address) {
-      alert("Please fill in all required fields");
+    // Validate form
+    if (!validateForm()) {
       return;
     }
     
+    setLoading(true);
     console.log(formData);
 
     try {
@@ -95,23 +175,25 @@ const CreateEditShop = () => {
       if (formData.image && typeof formData.image === 'object') {
         // If image is a File object, use FormData
         requestData = new FormData();
-        requestData.append('name', formData.name);
-        requestData.append('city', formData.city);
-        requestData.append('state', formData.state);
-        requestData.append('address', formData.address);
+        requestData.append('name', formData.name.trim());
+        requestData.append('city', formData.city.trim());
+        requestData.append('state', formData.state.trim());
+        requestData.append('address', formData.address.trim());
         requestData.append('image', formData.image);
       } else {
         // If no new image, send JSON (for edit without changing image)
         requestData = {
-          name: formData.name,
-          city: formData.city,
-          state: formData.state,
-          address: formData.address
+          name: formData.name.trim(),
+          city: formData.city.trim(),
+          state: formData.state.trim(),
+          address: formData.address.trim()
         };
+        headers['Content-Type'] = 'application/json';
       }
 
       const {data} = await axios.post('http://localhost:8080/api/shop/create-edit', requestData, {
         withCredentials: true,
+        headers
       });
       
       if(data.success){
@@ -120,13 +202,30 @@ const CreateEditShop = () => {
         navigate("/");
       } else {
         console.log("Failed to create/edit shop:", data.message);
-        alert(data.message);
+        setSubmitError(data.message || "Failed to save shop information");
       }
     } catch (error) {
       console.error("Error occurred while creating/editing shop:", error);
-      alert("An error occurred. Please try again.");
+      
+      if (error.response?.data?.message) {
+        setSubmitError(error.response.data.message);
+      } else if (error.response?.status === 413) {
+        setSubmitError("Image file is too large. Please choose a smaller image.");
+      } else if (error.response?.status >= 500) {
+        setSubmitError("Server error. Please try again later.");
+      } else if (error.code === 'NETWORK_ERROR') {
+        setSubmitError("Network error. Please check your connection and try again.");
+      } else {
+        setSubmitError("An unexpected error occurred. Please try again.");
+      }
+    } finally {
+      setLoading(false);
     }
   }
+
+  const handleRetryShop = () => {
+    fetchShop();
+  };
 
 
   return (
@@ -145,42 +244,127 @@ const CreateEditShop = () => {
           </div>
         </div>
 
-        {loading ? (
+        {shopLoading ? (
           <div className="flex justify-center items-center py-8">
-            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-orange-500"></div>
-            <span className="ml-2 text-gray-600">Loading shop data...</span>
+            <LoadingSpinner message="Loading shop information..." />
+          </div>
+        ) : shopError ? (
+          <div className="py-8">
+            <ErrorMessage 
+              message="Failed to load shop information"
+              onRetry={handleRetryShop}
+            />
           </div>
         ) : (
           <form className='space-y-5' onSubmit={handleSubmit}>
+            {submitError && (
+              <div className="bg-red-50 border border-red-200 text-red-600 px-4 py-3 rounded-lg">
+                {submitError}
+              </div>
+            )}
+            
             <div>
               <label className='block text-sm font-medium text-gray-700 mb-1'>Name <span className="text-red-500">*</span></label>
-              <input type="text" id="name" value={formData.name} onChange={handleChange} placeholder='Enter Shop Name' className='w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500' required/>
+              <input 
+                type="text" 
+                id="name" 
+                value={formData.name} 
+                onChange={handleChange} 
+                placeholder='Enter Shop Name' 
+                className={`w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 ${
+                  errors.name ? 'border-red-500 focus:ring-red-500' : 'focus:ring-orange-500'
+                }`}
+                disabled={loading}
+              />
+              {errors.name && <p className="text-red-500 text-sm mt-1">{errors.name}</p>}
             </div>
+            
             <div>
               <label className='block text-sm font-medium text-gray-700 mb-1'>Shop Image</label>
-              <input type="file" id="image" accept='image/*' onChange={handleChange} className='w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500'/>
+              <input 
+                type="file" 
+                id="image" 
+                accept='image/jpeg,image/png,image/webp,image/jpg' 
+                onChange={handleChange} 
+                className={`w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 ${
+                  errors.image ? 'border-red-500 focus:ring-red-500' : 'focus:ring-orange-500'
+                }`}
+                disabled={loading}
+              />
+              {errors.image && <p className="text-red-500 text-sm mt-1">{errors.image}</p>}
               {imagePreview && (
                 <div className="mt-2">
                   <img src={imagePreview} alt="Preview" className="w-full h-48 object-cover rounded-lg border" />
                 </div>
               )}
             </div>
+            
             <div className='grid grid-cols-1 md:grid-cols-2 gap-4'>
               <div>
                 <label className='block text-sm font-medium text-gray-700 mb-1'>City <span className="text-red-500">*</span></label>
-                <input type="text" id="city" value={formData.city} onChange={handleChange} placeholder='City' className='w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500' required/>
+                <input 
+                  type="text" 
+                  id="city" 
+                  value={formData.city} 
+                  onChange={handleChange} 
+                  placeholder='City' 
+                  className={`w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 ${
+                    errors.city ? 'border-red-500 focus:ring-red-500' : 'focus:ring-orange-500'
+                  }`}
+                  disabled={loading}
+                />
+                {errors.city && <p className="text-red-500 text-sm mt-1">{errors.city}</p>}
               </div>
               <div>
                 <label className='block text-sm font-medium text-gray-700 mb-1'>State <span className="text-red-500">*</span></label>
-                <input type="text" id="state" value={formData.state} onChange={handleChange} placeholder='State' className='w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500' required/>
+                <input 
+                  type="text" 
+                  id="state" 
+                  value={formData.state} 
+                  onChange={handleChange} 
+                  placeholder='State' 
+                  className={`w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 ${
+                    errors.state ? 'border-red-500 focus:ring-red-500' : 'focus:ring-orange-500'
+                  }`}
+                  disabled={loading}
+                />
+                {errors.state && <p className="text-red-500 text-sm mt-1">{errors.state}</p>}
               </div>
             </div>
+            
             <div>
               <label className='block text-sm font-medium text-gray-700 mb-1'>Address <span className="text-red-500">*</span></label>
-              <input type="text" id="address" value={formData.address} onChange={handleChange} placeholder='Enter Shop Address' className='w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500' required/>
+              <input 
+                type="text" 
+                id="address" 
+                value={formData.address} 
+                onChange={handleChange} 
+                placeholder='Enter Shop Address' 
+                className={`w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 ${
+                  errors.address ? 'border-red-500 focus:ring-red-500' : 'focus:ring-orange-500'
+                }`}
+                disabled={loading}
+              />
+              {errors.address && <p className="text-red-500 text-sm mt-1">{errors.address}</p>}
             </div>
-            <button type='submit' className='w-full bg-[#ff4d2d] text-white py-2 rounded-lg font-semibold hover:bg-orange-600 transition-colors duration-200 cursor-pointer'>
-              Save
+            
+            <button 
+              type='submit' 
+              disabled={loading}
+              className={`w-full py-2 rounded-lg font-semibold transition-colors duration-200 cursor-pointer ${
+                loading 
+                  ? 'bg-gray-400 text-gray-600 cursor-not-allowed' 
+                  : 'bg-[#ff4d2d] text-white hover:bg-orange-600'
+              }`}
+            >
+              {loading ? (
+                <div className="flex items-center justify-center">
+                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                  Saving...
+                </div>
+              ) : (
+                'Save Shop'
+              )}
             </button>
           </form>
         )}

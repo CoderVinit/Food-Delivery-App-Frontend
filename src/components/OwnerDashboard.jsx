@@ -1,25 +1,52 @@
-import React, { useEffect } from 'react'
+import React from 'react'
 import Nav from './Nav'
 import { useSelector } from 'react-redux'
-import { getShopByOwner } from '../hooks/useGetMyShop';
 import { FaUtensils } from "react-icons/fa";
 import { useNavigate } from 'react-router-dom';
 import { MdEdit } from "react-icons/md";
 import OwnerItemCard from './ownerItemCard';
+import { useGetShopByOwner } from '../hooks/useGetMyShop';
+import { useGetOwnerOrders } from '../hooks/useGetOwnerOrder';
+import DataState from './DataState';
+import LoadingSpinner from './LoadingSpinner';
+import ErrorMessage from './ErrorMessage';
 
 const OwnerDashboard = () => {
+  // Fetch shop and order data specific to owner dashboard
+  const fetchShop = useGetShopByOwner();
+  const fetchOrders = useGetOwnerOrders();
 
   const { shopInfo, loading, error } = useSelector((state) => state.shop);
-  const {ownerOrders} = useSelector((state) => state.user);
+  const { ownerOrders, ownerOrdersLoading, ownerOrdersError } = useSelector((state) => state.user);
   console.log(ownerOrders,"owner orders in dashboard");
   const navigate = useNavigate();
+
+  const handleRetryShop = () => {
+    fetchShop();
+  };
+
+  const handleRetryOrders = () => {
+    fetchOrders();
+  };
 
 
 
   return (
     <div className='w-full bg-[#fff9f6] flex flex-col items-center'>
       <Nav />
-      {!shopInfo &&
+      
+      {loading ? (
+        <div className='flex justify-center items-center py-20'>
+          <LoadingSpinner size="large" message="Loading your shop information..." />
+        </div>
+      ) : error ? (
+        <div className='flex justify-center items-center py-20'>
+          <ErrorMessage 
+            message="Failed to load shop information"
+            onRetry={handleRetryShop}
+          />
+        </div>
+      ) : !shopInfo ? (
         <div className='flex justify-center itms-center p-4 sm:p-6' >
           <div className='w-full max-w-md bg-white shadow-lg rounded-2xl p-6 border border-gray-100 hover:shadow-xl  transition-shadow duration-300'>
             <div className='flex flex-col items-center text-center'>
@@ -29,12 +56,9 @@ const OwnerDashboard = () => {
               <button onClick={() => navigate('/create-shop')} className='bg-[#ff4d2d] text-white px-5 sm:px-6 py-2 rounded-full font-medium shadow-md hover:bg-orange-600 transition-colors cursor-pointer duration-200'>Get Started</button>
             </div>
           </div>
-
-        </div>}
-
-
-      {
-        shopInfo && <div className='w-full flex flex-col items-center gap-6 px-4 sm:px-6'>
+        </div>
+      ) : (
+        <div className='w-full flex flex-col items-center gap-6 px-4 sm:px-6'>
 
           <h1 className='text-2xl sm:text-3xl text-gray-900 flex items-center gap-3 mt-8 text-center'>
             <FaUtensils size={50} className='text-[#ff4d2d] w-14 h-14' /> Welcome to {shopInfo.name}
@@ -80,7 +104,7 @@ const OwnerDashboard = () => {
           }
 
         </div>
-      }
+      )}
     </div>
   )
 }

@@ -1,30 +1,46 @@
 import axios from "axios";
 import { useDispatch } from "react-redux";
-import { setShopByCity, setShopData } from "../redux/slices/shopSlice";
-import { useEffect } from "react";
-import { setError, setItemsByCity } from "../redux/slices/userSlice";
+import { useEffect, useCallback } from "react";
+import { setItemsByCity, setItemsLoading, setItemsError } from "../redux/slices/userSlice";
 
-
-
-export const getItemsByCity = (city) => {
+export const useGetItemsByCity = (city) => {
     const dispatch = useDispatch();
-    useEffect(() => {
-        const fetchItems = async () => {
-            try {
-                const { data } = await axios.get(`http://localhost:8080/api/item/getItems/${city}`, { withCredentials: true });
-                if (data.success) {
-                    dispatch(setItemsByCity(data.data));
-                    dispatch(setError(""));
-                }
-                else {
-                    dispatch(setItemsByCity([]));
-                    console.log("Failed to fetch user data:", data.message);
-                }
-            } catch (error) {
-                dispatch(setError(error.message));
-                console.error("Error fetching shop data:", error);
-            }
+    
+    const fetchItems = useCallback(async () => {
+        if (!city || city.trim() === "") {
+            dispatch(setItemsByCity([]));
+            dispatch(setItemsError(null));
+            return;
         }
+        
+        try {
+            dispatch(setItemsLoading(true));
+            dispatch(setItemsError(null));
+            
+            const { data } = await axios.get(`http://localhost:8080/api/item/getItems/${encodeURIComponent(city)}`, { withCredentials: true });
+            if (data.success) {
+                dispatch(setItemsByCity(data.data || []));
+            } else {
+                const errorMsg = data.message || `No items found for city: ${city}`;
+                console.log("Failed to fetch items by city:", errorMsg);
+                dispatch(setItemsError(errorMsg));
+                toast.error(errorMsg);
+                dispatch(setItemsByCity([]));
+            }
+        } catch (error) {
+            console.error("Error fetching items by city:", error);
+            const errorMsg = error.response?.data?.message || error.message || `Network error while fetching items for ${city}`;
+            dispatch(setItemsError(errorMsg));
+            toast.error(errorMsg);
+            dispatch(setItemsByCity([]));
+        } finally {
+            dispatch(setItemsLoading(false));
+        }
+    }, [dispatch, city]);
+
+    useEffect(() => {
         fetchItems();
-    }, [dispatch,city]);
+    }, [fetchItems]);
+
+    return fetchItems;
 }

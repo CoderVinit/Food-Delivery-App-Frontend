@@ -9,6 +9,7 @@ import { auth } from "../../firebase";
 import { ClipLoader } from "react-spinners";
 import { useDispatch } from "react-redux";
 import { setUserData } from "../redux/slices/userSlice";
+import toast from "react-hot-toast";
 
 const SignUp = () => {
   const [showPassword, setShowPassword] = useState(false);
@@ -43,6 +44,7 @@ const SignUp = () => {
             });
             if(data.success){
                 console.log("User signed up successfully");
+                toast.success("Signed up successfully");
                 dispatch(setUserData(data.user));
                 setFormData({
                     fullName: "",
@@ -56,13 +58,13 @@ const SignUp = () => {
                 setLoading(false);
             } else {
                 console.log("Sign up failed:", data.message);
-               setError(data.message);
+               toast.error(data.message);
                setLoading(false);
             }
         } catch (error) {
             setLoading(false);
             console.error("Error signing up:", error);
-            setError(error.message);
+            toast.error(error.message);
         }
     }
 
@@ -85,12 +87,13 @@ const SignUp = () => {
           });
           if(data.success){
             console.log("User signed in with Google:", user);
+            toast.success("Signed in with Google successfully");
             dispatch(setUserData(data.user));
             navigate("/"); // Navigate to home instead of signin
             setError("");
           } else {
             console.log("Google sign in failed:", data.message);
-            setError(data.message);
+            toast.error(data.message);
           }
         } catch (error) {
             console.error("Error with Google authentication:", error);
@@ -101,17 +104,17 @@ const SignUp = () => {
               // Don't show error message for user-cancelled action
               return;
             } else if (error.code === 'auth/popup-blocked') {
-              setError("Popup was blocked by browser. Please allow popups and try again.");
+              toast.error("Popup was blocked by browser. Please allow popups and try again.");
             } else if (error.code === 'auth/cancelled-popup-request') {
               console.log("Popup request was cancelled");
               // Don't show error for cancelled requests
               return;
             } else if (error.code === 'auth/network-request-failed') {
-              setError("Network error. Please check your internet connection and try again.");
+              toast.error("Network error. Please check your internet connection and try again.");
             } else if (error.code === 'auth/too-many-requests') {
-              setError("Too many failed attempts. Please try again later.");
+              toast.error("Too many failed attempts. Please try again later.");
             } else {
-              setError("Failed to sign in with Google. Please try again.");
+              toast.error("Failed to sign in with Google. Please try again.");
             }
         } finally {
           setLoading(false);
