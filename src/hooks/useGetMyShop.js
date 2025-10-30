@@ -3,6 +3,7 @@ import { useDispatch } from "react-redux";
 import { setShopData, setShopLoading, setShopError } from "../redux/slices/shopSlice";
 import { useEffect, useCallback } from "react";
 import { BASE_URL } from "../config/constant";
+import toast from "react-hot-toast";
 
 export const useGetShopByOwner = () => {
     const dispatch = useDispatch();

@@ -35,6 +35,8 @@ const FoodCard = ({ data }) => {
     setQuantity((prev) => Math.max(prev - 1, 0));
   };
 
+  console.log(data,"data in FoodCart")
+
   return (
     <div className="w-[270px] rounded-2xl border-2 border-[#fff4d2d] bg-white shadow-md overflow-hidden hover:shadow-xl transition-all duration-300 flex flex-col">
       <div className="relative w-full h-[170px] flex justify-center items-center bg-white">
@@ -59,6 +61,9 @@ const FoodCard = ({ data }) => {
       <div className="flex-1 flex flex-col p-4">
         <h1 className="font-semibold text-gray-900 text-base truncate">
           {data.name}
+        </h1>
+        <h1 className="font-medium text-gray-500 text-[12px] truncate">
+          {data.shop.name}
         </h1>
         <div className="mt-1 flex items-centern">
           {renderStars(data.rating?.average || 0)}

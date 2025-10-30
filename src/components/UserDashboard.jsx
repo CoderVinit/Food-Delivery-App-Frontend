@@ -8,6 +8,8 @@ import { useDispatch, useSelector } from "react-redux";
 import { useGetShopByCity } from "../hooks/useGetShopByCity";
 import { useGetItemsByCity } from "../hooks/useGetItemsByCity";
 import FoodCard from "./FoodCard";
+import { useGetAllItems } from "../hooks/useGetAllItems";
+import Pagination from "./Pagination";
 
 const UserDashboard = () => {
   const catScrollRef = useRef(null);
@@ -17,6 +19,8 @@ const UserDashboard = () => {
 
   const [showLeftShopButton, setShowLeftShopButton] = useState(false);
   const [showRightShopButton, setShowRightShopButton] = useState(true);
+  const [page, setPage] = useState(1);
+  
   const { city, error, itemsByCity } = useSelector((state) => state.user);
   console.log('Current city:', city);
   console.log('Items by city:', itemsByCity);
@@ -28,12 +32,14 @@ const UserDashboard = () => {
   const safeShopByCity = Array.isArray(shopByCity) ? shopByCity : [];
   const safeItemsByCity = Array.isArray(itemsByCity) ? itemsByCity : [];
 
+
   // Use the custom hooks to fetch shops and items by city (with fallback)
   const currentCity = city || "Saidulajab Extension";
   
   // Fetch data specific to user dashboard
   useGetItemsByCity(currentCity);
   useGetShopByCity(currentCity);
+ const { items, totalPages, loading } = useGetAllItems(page);
 
   const handleScroll = (ref, setShowLeft, setShowRight) => {
     const elem = ref.current;
@@ -199,6 +205,31 @@ const UserDashboard = () => {
             ))}
           </div>
 
+      </div>
+
+      <div className="w-full max-w-6xl flex flex-col gap-5 items-start p-[10px]">
+        <h1 className="text-gray-800 text-2xl sm:text-3xl">All Food Items</h1>
+        {error && <p className="text-red-500">{error}</p>}
+
+        {loading ? (
+          <p className="text-gray-500 text-center w-full">Loading...</p>
+        ) : (
+          <>
+            <div className="w-full h-auto flex flex-wrap gap-[20px] justify-center">
+              {items.length > 0 ? (
+                items.map((item, index) => <FoodCard key={index} data={item} />)
+              ) : (
+                <p className="text-gray-600">No items available</p>
+              )}
+            </div>
+
+            <Pagination
+              currentPage={page}
+              totalPages={totalPages}
+              onPageChange={(newPage) => setPage(newPage)}
+            />
+          </>
+        )}
       </div>
     </div>
   );
