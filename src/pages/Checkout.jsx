@@ -89,24 +89,156 @@ const Checkout = () => {
   };
 
 
-  // handle checkout function for order place
+  // Dynamically load Razorpay script
+  const loadRazorpayScript = () => {
+    return new Promise((resolve) => {
+      if (document.getElementById("razorpay-sdk")) return resolve(true);
+      const script = document.createElement("script");
+      script.id = "razorpay-sdk";
+      script.src = "https://checkout.razorpay.com/v1/checkout.js";
+      script.onload = () => resolve(true);
+      script.onerror = () => resolve(false);
+      document.body.appendChild(script);
+    });
+  };
 
-  const handleCheckout = async() => {
+  // Place COD order directly
+  const handleCheckoutCOD = async () => {
     try {
-      const {data} = await axios.post(`${BASE_URL}/api/order/place-order`,{
-        cartItems,
-        paymentMethod,
-        deliveryAddress: {text: address, latitude: location.lat, longitude: location.lon},
-        totalAmount: AmountWithDeliveryFee
-      },{withCredentials: true});
-      if(data.success){
-      console.log("Order placed successfully:", data);
-      navigate("/order-placed");
+      const { data } = await axios.post(
+        `${BASE_URL}/api/order/place-order`,
+        {
+          cartItems,
+          paymentMethod: "cod",
+          deliveryAddress: {
+            text: address,
+            latitude: location.lat,
+            longitude: location.lon,
+          },
+          totalAmount: AmountWithDeliveryFee,
+        },
+        { withCredentials: true }
+      );
+      if (data.success) {
+        navigate("/order-placed");
       }
     } catch (error) {
-      console.error("Error placing order:", error);
+      console.error("Error placing COD order:", error);
+      alert(error?.response?.data?.message || "Failed to place order");
     }
-  }
+  };
+
+  // Online payment with Razorpay, then place order
+  const handleCheckoutOnline = async () => {
+    try {
+      const ok = await loadRazorpayScript();
+      if (!ok) {
+        alert("Failed to load Razorpay. Please try again.");
+        return;
+      }
+
+      // 1) Create Razorpay order on backend (amount in rupees)
+      const createRes = await axios.post(
+        `${BASE_URL}/api/razorpay/create-order`,
+        { amount: AmountWithDeliveryFee },
+        { withCredentials: true }
+      );
+      const { success: createOk, order, keyId } = createRes.data || {};
+      if (!createOk || !order?.id || !keyId) {
+        alert("Unable to initiate payment. Please try again.");
+        return;
+      }
+
+      // 2) Open Razorpay checkout
+      const options = {
+        key: keyId,
+        amount: order.amount, // in paise
+        currency: order.currency || "INR",
+        name: "Food Delivery",
+        description: "Order payment",
+        order_id: order.id,
+        handler: async function (response) {
+          try {
+            // 3) Verify payment on backend
+            const verifyRes = await axios.post(
+              `${BASE_URL}/api/razorpay/verify-payment`,
+              {
+                razorpay_order_id: response.razorpay_order_id,
+                razorpay_payment_id: response.razorpay_payment_id,
+                razorpay_signature: response.razorpay_signature,
+              },
+              { withCredentials: true }
+            );
+            if (!verifyRes.data?.success) {
+              alert("Payment verification failed. You were not charged.");
+              return;
+            }
+
+            // 4) Place the order, include payment details
+            const placeRes = await axios.post(
+              `${BASE_URL}/api/order/place-order`,
+              {
+                cartItems,
+                paymentMethod: "online",
+                deliveryAddress: {
+                  text: address,
+                  latitude: location.lat,
+                  longitude: location.lon,
+                },
+                totalAmount: AmountWithDeliveryFee,
+                payment: {
+                  provider: "razorpay",
+                  orderId: response.razorpay_order_id,
+                  paymentId: response.razorpay_payment_id,
+                  signature: response.razorpay_signature,
+                  currency: order.currency || "INR",
+                  amount: order.amount, // paise
+                },
+              },
+              { withCredentials: true }
+            );
+
+            if (placeRes.data?.success) {
+              navigate("/order-placed");
+            } else {
+              alert(
+                placeRes.data?.message ||
+                  "Order placement failed after payment. Please contact support."
+              );
+            }
+          } catch (err) {
+            console.error("Order placement after payment failed:", err);
+            alert(
+              err?.response?.data?.message ||
+                "Something went wrong after payment. Please contact support."
+            );
+          }
+        },
+        theme: { color: "#ff4d2d" },
+        modal: {
+          ondismiss: function () {
+            // User closed the popup
+          },
+        },
+        prefill: {
+          // Optional: add user details if available
+        },
+        notes: {
+          // Optional: add any metadata you want to attach on Razorpay side
+        },
+      };
+
+      const rzp = new window.Razorpay(options);
+      rzp.on("payment.failed", function (resp) {
+        console.error("Payment failed:", resp?.error);
+        alert(resp?.error?.description || "Payment failed. Please try again.");
+      });
+      rzp.open();
+    } catch (error) {
+      console.error("Error during online checkout:", error);
+      alert(error?.response?.data?.message || "Unable to start payment");
+    }
+  };
 
   useEffect(() => {
     if(cartItems.length === 0){
@@ -251,7 +383,7 @@ const Checkout = () => {
             </div>
           </section>
             <button
-              onClick={paymentMethod === "cod" ? handleCheckout : handleCheckout}
+              onClick={paymentMethod === "cod" ? handleCheckoutCOD : handleCheckoutOnline}
             className="w-full bg-[#ff4d2d] hover:bg-[#e64526] text-white py-3 rounded-xl font-semibold cursor-pointer"
             >
               {paymentMethod === "cod" ? "Place Order": "Pay & Place Order"}

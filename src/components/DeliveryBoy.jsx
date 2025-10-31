@@ -8,8 +8,11 @@ import { useGetCurrentOrders } from "../hooks/useGetCurrentOder";
 import DeliveryboyTracking from "./DeliveryboyTracking";
 import { toast } from "react-hot-toast";
 import { BASE_URL } from "../config/constant";
+import { useUpdateLocation } from "../hooks/useUpdateLocation";
 
 const DeliveryBoy = () => {
+  // Continuously update delivery boy's live location for assignment matching
+  useUpdateLocation();
   const { userInfo, currentOrders } = useSelector((state) => state.user);
   const [assignments, setAssignments] = useState([]);
   const [showOtpBox,setShowOtpBox]=useState(false);

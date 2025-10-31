@@ -1,12 +1,13 @@
 import axios from "axios";
 import { useDispatch } from "react-redux";
 import { setShopData, setShopLoading, setShopError } from "../redux/slices/shopSlice";
-import { useEffect, useCallback } from "react";
+import { useEffect, useCallback, useRef } from "react";
 import { BASE_URL } from "../config/constant";
 import toast from "react-hot-toast";
 
 export const useGetShopByOwner = () => {
     const dispatch = useDispatch();
+    const didFetchRef = useRef(false); // guard to prevent duplicate fetch in React StrictMode
     
     const fetchShop = useCallback(async () => {
         try {
@@ -37,6 +38,8 @@ export const useGetShopByOwner = () => {
     }, [dispatch]);
 
     useEffect(() => {
+        if (didFetchRef.current) return; // Skip duplicate effect in dev StrictMode
+        didFetchRef.current = true;
         fetchShop();
     }, [fetchShop]);
 
