@@ -16,11 +16,13 @@ import MyOrders from './pages/MyOrders'
 import { useUpdateLocation } from './hooks/useUpdateLocation'
 import TrackOrderPage from './pages/TrackOrderPage'
 import { Toaster } from 'react-hot-toast'
+import { useSocketListeners } from './hooks/useSocketListeners'
 
 const App = () => {
   // Only location-related hooks in App.js
   useUpdateLocation();
   useGetCity();
+  useSocketListeners();
   const { userInfo } = useSelector((state) => state.user);
   return (
     <Router>
