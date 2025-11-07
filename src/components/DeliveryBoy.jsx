@@ -1,14 +1,13 @@
-import React from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import Nav from "./Nav";
 import { useSelector } from "react-redux";
 import axios from "axios";
-import { useState } from "react";
-import { useEffect } from "react";
 import { useGetCurrentOrders } from "../hooks/useGetCurrentOder";
 import DeliveryboyTracking from "./DeliveryboyTracking";
 import { toast } from "react-hot-toast";
 import { BASE_URL } from "../config/constant";
 import { useUpdateLocation } from "../hooks/useUpdateLocation";
+import { connectSocket } from "../utils/socket";
 
 const DeliveryBoy = () => {
   // Continuously update delivery boy's live location for assignment matching
@@ -26,7 +25,7 @@ const DeliveryBoy = () => {
   // Use the proper hook to fetch current orders
   const fetchCurrentOrders = useGetCurrentOrders();
 
-  const getAssignments = async () => {
+  const getAssignments = useCallback(async () => {
     try {
       const result = await axios.get(
         `${BASE_URL}/api/order/get-assignment`,
@@ -41,11 +40,37 @@ const DeliveryBoy = () => {
     } catch (error) {
       console.error(error);
     }
-  };
+  }, [userInfo?._id]);
 
   useEffect(() => {
     getAssignments();
-  }, [userInfo]);
+  }, [getAssignments]);
+
+  useEffect(() => {
+    if (!userInfo) return;
+    const socket = connectSocket();
+
+    const handleAssignmentEvent = () => {
+      getAssignments();
+    };
+
+    const handleOrdersRefresh = (payload = {}) => {
+      if (payload.scope === "delivery") {
+        fetchCurrentOrders();
+        getAssignments();
+      }
+    };
+
+    socket.on("delivery:assignment", handleAssignmentEvent);
+    socket.on("delivery:assignment-closed", handleAssignmentEvent);
+    socket.on("orders:refresh", handleOrdersRefresh);
+
+    return () => {
+      socket.off("delivery:assignment", handleAssignmentEvent);
+      socket.off("delivery:assignment-closed", handleAssignmentEvent);
+      socket.off("orders:refresh", handleOrdersRefresh);
+    };
+  }, [fetchCurrentOrders, getAssignments, userInfo]);
 
   const handleAcceptOrder = async (assignmentId) => {
     try {

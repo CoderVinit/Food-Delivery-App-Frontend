@@ -1,13 +1,23 @@
-import React from 'react'
+import React, { useEffect } from 'react'
 import { useNavigate, useParams } from 'react-router-dom';
 import { useGetOrderById } from '../hooks/useGetOrderById';
 import { useSelector } from 'react-redux';
 import { IoIosArrowRoundBack } from 'react-icons/io';
 import DeliveryboyTracking from '../components/DeliveryboyTracking';
+import { connectSocket } from '../utils/socket';
 
 const TrackOrderPage = () => {
     const {orderId} = useParams();
     useGetOrderById(orderId);
+
+    useEffect(() => {
+        if (!orderId) return;
+        const socket = connectSocket();
+        socket.emit('order:subscribe', orderId);
+        return () => {
+            socket.emit('order:unsubscribe', orderId);
+        };
+    }, [orderId]);
 
     const { orderDetailsById } = useSelector((state) => state.user);
     console.log(orderDetailsById)

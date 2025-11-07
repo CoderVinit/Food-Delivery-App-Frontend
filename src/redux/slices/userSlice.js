@@ -11,6 +11,18 @@ const getUserFromStorage = () => {
     }
 };
 
+const toIdString = (value) => {
+    if (!value) return null;
+    if (typeof value === "string") return value;
+    if (value._id && typeof value._id.toString === "function") {
+        return value._id.toString();
+    }
+    if (typeof value.toString === "function") {
+        return value.toString();
+    }
+    return null;
+};
+
 const userSlice = createSlice({
     name: "user",
     initialState: {
@@ -103,6 +115,47 @@ const userSlice = createSlice({
             state.orderDetailsByIdLoading = false;
             state.orderDetailsByIdError = null;
         },
+        updateOrderTrackingLocation: (state, action) => {
+            const { orderId, shopOrderId, assignmentId, deliveryBoyId, location } = action.payload || {};
+            if (!location) return;
+
+            const targetOrderId = toIdString(orderId);
+            const targetShopOrderId = toIdString(shopOrderId);
+            const targetAssignmentId = toIdString(assignmentId);
+            const lat = location.lat;
+            const lon = location.long ?? location.lon ?? location.lng;
+
+            if (state.orderDetailsById && targetOrderId) {
+                const currentOrderId = toIdString(state.orderDetailsById._id || state.orderDetailsById.id);
+                if (currentOrderId === targetOrderId && Array.isArray(state.orderDetailsById.shopOrder)) {
+                    const shopOrder = state.orderDetailsById.shopOrder.find((order) => toIdString(order._id) === targetShopOrderId);
+                    if (shopOrder) {
+                        if (!shopOrder.assignedDeliveryBoy) {
+                            shopOrder.assignedDeliveryBoy = {
+                                _id: deliveryBoyId,
+                                location: { coordinates: [lon, lat] }
+                            };
+                        } else if (!shopOrder.assignedDeliveryBoy.location) {
+                            shopOrder.assignedDeliveryBoy.location = { coordinates: [lon, lat] };
+                        } else {
+                            shopOrder.assignedDeliveryBoy.location.coordinates = [lon, lat];
+                        }
+                    }
+                }
+            }
+
+            if (state.currentOrders && targetAssignmentId) {
+                const currentAssignmentId = toIdString(state.currentOrders._id);
+                if (currentAssignmentId === targetAssignmentId) {
+                    if (!state.currentOrders.deliveryBoyLocation) {
+                        state.currentOrders.deliveryBoyLocation = { lat, long: lon };
+                    } else {
+                        state.currentOrders.deliveryBoyLocation.lat = lat;
+                        state.currentOrders.deliveryBoyLocation.long = lon;
+                    }
+                }
+            }
+        },
         clearUserData: (state) => {
             state.userInfo = null;
             state.city = "";
@@ -191,6 +244,7 @@ export const {
     // Loading states
     setItemsLoading, setOrdersLoading, setOwnerOrdersLoading, setCurrentOrdersLoading, setAvailableBoysLoading, setOrderDetailsByIdLoading,
     // Error states  
-    setItemsError, setOrdersError, setOwnerOrdersError, setCurrentOrdersError, setAvailableBoysError, setOrderDetailsByIdError
+    setItemsError, setOrdersError, setOwnerOrdersError, setCurrentOrdersError, setAvailableBoysError, setOrderDetailsByIdError,
+    updateOrderTrackingLocation
 } = userSlice.actions;
 export default userSlice.reducer;

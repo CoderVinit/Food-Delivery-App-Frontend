@@ -17,7 +17,6 @@ export const useUpdateStatus = () => {
         { withCredentials: true }
       );
       if (resp?.success) {
-        console.log("Updated shop order:", resp.data);
         console.log("Order status updated successfully");
       }
       return resp;
