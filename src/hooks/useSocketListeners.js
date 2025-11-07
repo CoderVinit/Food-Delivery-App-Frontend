@@ -65,9 +65,18 @@ export const useSocketListeners = () => {
     };
 
     const handleOrdersRefresh = (payload = {}) => {
-      const { scope, orderId } = payload;
-      if (scope === "user") refreshUserOrders();
-      if (scope === "owner") refreshOwnerOrders();
+      const { scope, orderId, ownerId, userId } = payload;
+      const currentUserId = userInfo?._id;
+      if (scope === "user") {
+        if (!userId || userId === currentUserId) {
+          refreshUserOrders();
+        }
+      }
+      if (scope === "owner") {
+        if (!ownerId || ownerId === currentUserId) {
+          refreshOwnerOrders();
+        }
+      }
       if (scope === "delivery") refreshCurrentOrders();
       if (orderId) refreshOrderDetails(orderId);
     };
@@ -77,8 +86,16 @@ export const useSocketListeners = () => {
         toast.success(payload.message, { id: `order-status-${payload.orderId}-${payload.shopOrderId}` });
       }
       refreshOrderDetails(payload.orderId);
-      if (userInfo.role === "user") refreshUserOrders();
-      if (userInfo.role === "owner") refreshOwnerOrders();
+      if (userInfo.role === "user") {
+        if (!payload.userId || payload.userId === currentUserId) {
+          refreshUserOrders();
+        }
+      }
+      if (userInfo.role === "owner") {
+        if (!payload.ownerId || payload.ownerId === currentUserId) {
+          refreshOwnerOrders();
+        }
+      }
       if (userInfo.role === "deliveryBoy") refreshCurrentOrders();
     };
 
