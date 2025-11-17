@@ -1,8 +1,34 @@
-import React from "react";
-import { data, useNavigate } from "react-router-dom";
+import React, { useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { FaStar } from "react-icons/fa";
+import { BASE_URL } from "../config/constant";
+import toast from "react-hot-toast";
+import axios from "axios";
 
 const UserOrderCard = ({ order }) => {
   const navigate = useNavigate();
+  const [rating, setRating] = useState(0);
+  const [hover, setHover] = useState(0);
+  const [submitted, setSubmitted] = useState(false);
+  const [ratings, setRatings] = useState(0);
+
+  const handleRating = (value) => {
+    setRating(value);
+  }
+
+  const handleSubmit = async () => {
+    try {
+      const {data} = await axios.post(`${BASE_URL}/api/order/rate-order/${order._id}`, { rating },{ withCredentials: true });
+      if(data?.success){
+        toast.success(data.message || "Rating submitted successfully");
+        setSubmitted(true);
+        setRatings(data.rating)
+      }
+    } catch (error) {
+      console.error(error);
+    }
+  }
+
   console.log(order);
   return (
     <div className="bg-white rounded-lg shadow p-4 space-y-4">
@@ -60,6 +86,47 @@ const UserOrderCard = ({ order }) => {
           Track Order
         </button>
       </div>
+
+      {order?.shopOrder?.[0].status === "delivered" && !submitted && (
+        <div className="mt-4 border-t pt-3">
+          <div className="text-gray-800 font-semibold mb-2">Rate your order:</div>
+          <div className="flex items-center gap-1 mb-3">
+            {[...Array(5)].map((_, i) => {
+              const value = i + 1;
+              const isActive = value <= (hover || rating);
+              return (
+                <FaStar
+                  key={value}
+                  size={24}
+                  value={ratings}
+                  onClick={() => handleRating(value)}
+                  onMouseEnter={() => setHover(value)}
+                  onMouseLeave={() => setHover(0)}
+                  className="cursor-pointer transition-colors"
+                  color={isActive ? "#facc15" : "#d1d5db"}
+                />
+              );
+            })}
+          </div>
+          <button
+            onClick={handleSubmit}
+            disabled={rating === 0}
+            className={`px-4 py-2 rounded-md font-medium ${
+              rating === 0
+                ? "bg-gray-300 text-gray-600 cursor-not-allowed"
+                : "bg-blue-600 text-white hover:bg-blue-700 cursor-pointer"
+            }`}
+          >
+            Submit Rating
+          </button>
+        </div>
+      )}
+
+      {submitted && (
+        <div className="mt-4 text-green-600 font-medium">
+          ✅ Thank you for your feedback!
+        </div>
+      )}
     </div>
   );
 };
